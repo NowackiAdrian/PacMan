@@ -7,6 +7,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Arc2D;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
@@ -27,6 +29,7 @@ public class GameBoard  {
     int mouthAngle = 45;
 
     int blockSize;
+    MazeTableModel mazeTableModel;
 
 
     public GameBoard(int[][] maze) {
@@ -36,6 +39,7 @@ public class GameBoard  {
         this.pacMan = new PacMan();
         JFrame frame = new JFrame();
         JPanel pan = new  JPanel();
+         this.mazeTableModel = new MazeTableModel();
 //        table.addKeyListener(new PacManKeyListener(this.maze));
         frame.setTitle("PacMan");
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -43,7 +47,7 @@ public class GameBoard  {
         frame.setBackground(Color.BLUE);
 
         // create JTable to display the maze
-        table = new JTable(new MazeTableModel());
+        table = new JTable(mazeTableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         table.setGridColor(Color.WHITE);
         table.setShowGrid(true);
@@ -66,13 +70,15 @@ public class GameBoard  {
         frame.add(pan);
         frame.pack();
         frame.setVisible(true);
-
         table.setFocusable(true); // Set panel to be focusable to receive key events
-        table.addKeyListener(new PacManKeyListener(this.maze));
+        table.addKeyListener(new PacManKeyListener(this.maze,this.mazeTableModel));
         table.requestFocusInWindow(); // Request focus to receive key events immediately
 
     }
 
+    public MazeTableModel getMazeTableModel() {
+        return mazeTableModel;
+    }
 
     public class MazeTableModel extends AbstractTableModel  {
 
@@ -99,12 +105,8 @@ public class GameBoard  {
             }
             maze[rowIndex][columnIndex] = (int) value;
             fireTableCellUpdated(rowIndex, columnIndex);
-            TableCellRenderer renderer = table.getCellRenderer(rowIndex, columnIndex);
-            Component component = table.prepareRenderer(renderer, rowIndex, columnIndex);
-            if (component instanceof JComponent) {
-                ((JComponent) component).updateUI();
+            table.repaint();
         }
-            table.repaint();}
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -158,6 +160,71 @@ public class GameBoard  {
                 }
             }
         }
+
+
+    public class PacManKeyListener implements KeyListener {
+        private final int[][] maze;
+        GameBoard.MazeTableModel mazeTableModel;
+        private final int  pacManRow = 1;
+        private final int pacManCol = 1;
+        int score;
+
+        public PacManKeyListener(int[][] maze, MazeTableModel mazeTableModel)  {
+            this.maze = maze;
+            this.mazeTableModel = mazeTableModel;
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            int key = e.getKeyCode();
+            int newRow = pacManRow;
+            int newCol = pacManCol;
+            int previousRow = newRow;
+            int previousCol = newCol;
+            switch (key) {
+                case KeyEvent.VK_UP:
+                    previousRow = newRow;
+                    newRow = pacManRow - 1;
+                    break;
+                case KeyEvent.VK_DOWN :
+                    previousRow = newRow;
+                    newRow = pacManRow + 1;
+                    break;
+                case KeyEvent.VK_LEFT :
+                    previousCol = newCol;
+                    newCol = pacManCol - 1;
+                    break;
+                case KeyEvent.VK_RIGHT :
+                    previousCol = newCol;
+                    newCol = pacManCol + 1;
+                    break;
+                default :
+                    System.out.println("wrong keyboard input");
+                    break;
+            }
+
+            if (this.maze[newRow][newCol] == 1) {
+                return;
+            } else if (this.maze[newRow][newCol] == 2) {
+                this.score++;
+            } else if (this.maze[newRow][newCol] == 4) {
+                // Collision with ghost, game over
+                System.exit(0);
+                return;
+            }
+            System.out.println("previous row" + previousRow + "previous col" + previousCol);
+            System.out.println("next row" + newRow + "ext col" + newCol);
+            this.mazeTableModel.setValueAt(3,newRow,newCol);
+            this.mazeTableModel.setValueAt(0,previousRow,previousCol);
+        }
+        @Override
+        public void keyTyped(KeyEvent e) {}
+
+        @Override
+        public void keyReleased(KeyEvent e) {}
+
+    }
+
 
 
 
