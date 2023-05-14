@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -28,8 +29,8 @@ public class GameBoard  {
     int blockSize;
 
 
-    public GameBoard() {
-        this.maze= MazeGenerator.createMaze();
+    public GameBoard(int[][] maze) {
+        this.maze= maze;
         this.rows = maze.length;
         this.cols = maze[0].length;
         this.pacMan = new PacMan();
@@ -57,7 +58,7 @@ public class GameBoard  {
         scoreLabel.setHorizontalAlignment(SwingConstants.CENTER);
         frame.add(scoreLabel, BorderLayout.SOUTH);
 
-        //set the table alwasy as the size of the frame
+        //set the table always as the size of the frame
         pan.add(new JScrollPane(table), BorderLayout.CENTER);
 
 
@@ -67,6 +68,7 @@ public class GameBoard  {
         frame.setVisible(true);
 
         table.setFocusable(true); // Set panel to be focusable to receive key events
+        table.addKeyListener(new PacManKeyListener(this.maze));
         table.requestFocusInWindow(); // Request focus to receive key events immediately
 
     }
@@ -97,7 +99,12 @@ public class GameBoard  {
             }
             maze[rowIndex][columnIndex] = (int) value;
             fireTableCellUpdated(rowIndex, columnIndex);
+            TableCellRenderer renderer = table.getCellRenderer(rowIndex, columnIndex);
+            Component component = table.prepareRenderer(renderer, rowIndex, columnIndex);
+            if (component instanceof JComponent) {
+                ((JComponent) component).updateUI();
         }
+            table.repaint();}
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -189,7 +196,8 @@ public class GameBoard  {
 
 
     public static void main(String[] args) {
-       GameBoard gameBoard =  new GameBoard();
+
+       GameBoard gameBoard =  new GameBoard(MazeGenerator.createMaze());
 
     }}
 
