@@ -1,9 +1,11 @@
-import Counters.PacMan;
-import javax.swing.JOptionPane;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.geom.Arc2D;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
@@ -13,18 +15,7 @@ public class GameBoard  {
     int mazeHeight;
     private final int rows;
     private final int cols;
-//    private int[][] maze = {
-//            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//            {1, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-//            {1, 0, 2, 2, 2, 1, 2, 2, 2, 0, 2, 2, 2, 0, 1},
-//            {1, 0, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 0, 1},
-//            {1, 0, 2, 2, 1, 2, 0, 2, 2, 0, 2, 2, 2, 0, 1},
-//            {1, 0, 0, 1, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 1},
-//            {1, 0, 2, 2, 1, 0, 2, 1, 2, 0, 2, 2, 2, 0, 1},
-//            {1, 0, 2, 1, 2, 2, 0, 0, 2, 2, 2, 1, 2, 4, 1},
-//            {1, 0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 4, 4, 1},
-//            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-//    };
+
     private int[][] maze ;
     private JTable table;
     private JLabel scoreLabel;
@@ -32,6 +23,7 @@ public class GameBoard  {
     private int score = 0;
     private int TABLE_HEIGHT = 500;
     private int TABLE_WIDTH = 500;
+    int mouthAngle = 45;
 
     int blockSize;
 
@@ -43,7 +35,7 @@ public class GameBoard  {
         this.pacMan = new PacMan();
         JFrame frame = new JFrame();
         JPanel pan = new  JPanel();
-
+//        table.addKeyListener(new PacManKeyListener(this.maze));
         frame.setTitle("PacMan");
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
@@ -73,11 +65,14 @@ public class GameBoard  {
         frame.add(pan);
         frame.pack();
         frame.setVisible(true);
+
+        table.setFocusable(true); // Set panel to be focusable to receive key events
+        table.requestFocusInWindow(); // Request focus to receive key events immediately
+
     }
 
 
-
-    private class MazeTableModel extends AbstractTableModel  {
+    public class MazeTableModel extends AbstractTableModel  {
 
         @Override
         public int getRowCount() {
@@ -158,18 +153,29 @@ public class GameBoard  {
         }
 
 
-        private class PacManCellRenderer extends JPanel {
+
+    private class PacManCellRenderer extends JPanel  {
+        private int mouthAngle = 45;
+        private Timer chompTimer;
+        boolean gameOver;
 
         @Override
         public void paintComponent(Graphics g) {
             Graphics2D g2d = (Graphics2D) g;
 
-            g2d.setColor(Color.RED);
-            g2d.fillRect(GameBoard.this.pacMan.getX()+7, GameBoard.this.pacMan.getY(), getWidth() -10,getWidth() -10);
+            // Draw the pacman mouth
+            g2d.setColor(Color.red);
+            int mouthSize = getWidth() / 2;
+            int mouthAngle = GameBoard.this.pacMan.getMouthAngle();
+            g2d.fill(new Arc2D.Double(
+                    GameBoard.this.pacMan.getX(), GameBoard.this.pacMan.getY(),
+                    getWidth(), getHeight(), mouthAngle, 360 - 2 * mouthAngle, Arc2D.PIE));
         }
+
     }
 
-    private class EnemyCellRenderer extends JPanel {
+
+        private class EnemyCellRenderer extends JPanel {
 
         @Override
         public void paintComponent(Graphics g) {
