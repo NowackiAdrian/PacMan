@@ -165,8 +165,8 @@ public class GameBoard  {
     public class PacManKeyListener implements KeyListener {
         private final int[][] maze;
         GameBoard.MazeTableModel mazeTableModel;
-        private final int  pacManRow = 1;
-        private final int pacManCol = 1;
+        private  int  pacManRow = 1;
+        private  int pacManCol = 1;
         int score;
 
         public PacManKeyListener(int[][] maze, MazeTableModel mazeTableModel)  {
@@ -184,38 +184,50 @@ public class GameBoard  {
             switch (key) {
                 case KeyEvent.VK_UP:
                     previousRow = newRow;
-                    newRow = pacManRow - 1;
+                    this.pacManRow = newRow;
+                    newRow = newRow - 1;
                     break;
                 case KeyEvent.VK_DOWN :
                     previousRow = newRow;
-                    newRow = pacManRow + 1;
+                    this.pacManRow = newRow;
+                    newRow = newRow + 1;
                     break;
                 case KeyEvent.VK_LEFT :
                     previousCol = newCol;
-                    newCol = pacManCol - 1;
+                    this.pacManCol = newCol;
+                    newCol = newCol - 1;
                     break;
                 case KeyEvent.VK_RIGHT :
                     previousCol = newCol;
-                    newCol = pacManCol + 1;
+                    this.pacManCol = newCol;
+                    newCol = newCol + 1;
                     break;
                 default :
                     System.out.println("wrong keyboard input");
                     break;
             }
 
-            if (this.maze[newRow][newCol] == 1) {
+            if (this.maze[newRow][newCol] == 0 || this.maze[newRow][newCol] == 2) {
+                // move Pacman to the new position
+                this.mazeTableModel.setValueAt(3,newRow,newCol);
+                // update Pacman's position
+                this.pacManRow = newRow;
+                this.pacManCol = newCol;
+                // update the previous position with a 0
+                this.mazeTableModel.setValueAt(0,previousRow,previousCol);
+            } else if (this.maze[newRow][newCol] == 1) {
+                // wall, don't move Pacman
                 return;
-            } else if (this.maze[newRow][newCol] == 2) {
-                this.score++;
             } else if (this.maze[newRow][newCol] == 4) {
                 // Collision with ghost, game over
                 System.exit(0);
                 return;
             }
+
             System.out.println("previous row" + previousRow + "previous col" + previousCol);
             System.out.println("next row" + newRow + "ext col" + newCol);
             this.mazeTableModel.setValueAt(3,newRow,newCol);
-            this.mazeTableModel.setValueAt(0,previousRow,previousCol);
+//            this.mazeTableModel.setValueAt(0,previousRow,previousCol);
         }
         @Override
         public void keyTyped(KeyEvent e) {}
